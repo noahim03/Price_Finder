@@ -87,35 +87,3 @@ A full-stack web application that tracks and displays product prices over time. 
 ## Notes
 
 This application uses a mock price service for demonstration purposes. In a real-world scenario, you would integrate with actual product APIs or implement web scraping functionality to get real prices.
-
-## Project Structure
-
-```
-price_tracker/
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── models.py
-│   │   ├── price_service.py
-│   │   └── routes.py
-│   ├── instance/
-│   ├── config.py
-│   ├── requirements.txt
-│   └── wsgi.py
-└── frontend/
-    ├── public/
-    ├── src/
-    │   ├── components/
-    │   │   ├── PriceHistoryChart.tsx
-    │   │   ├── ProductList.tsx
-    │   │   ├── ProductSearch.tsx
-    │   │   └── SearchHistoryList.tsx
-    │   ├── services/
-    │   │   └── api.ts
-    │   ├── types/
-    │   │   └── index.ts
-    │   ├── App.tsx
-    │   └── index.tsx
-    ├── package.json
-    └── tsconfig.json
-``` 
