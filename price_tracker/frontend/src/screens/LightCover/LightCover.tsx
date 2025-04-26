@@ -22,8 +22,8 @@ import {
 } from 'recharts';
 import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 
-// API base URL - update if your backend is running on a different port
-const API_BASE_URL = 'http://localhost:3001';
+// API base URL - use relative path in production, localhost in development
+const API_BASE_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3001';
 
 // Custom tooltip component for bar charts
 const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
