@@ -1,0 +1,14 @@
+{
+  "projectId": "prj_price_finder",
+  "orgId": "team_price_finder",
+  "settings": {
+    "framework": null,
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": "cd price_tracker/frontend && npm install && npm run build",
+    "outputDirectory": "price_tracker/frontend/dist",
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "18.x"
+  }
+} 

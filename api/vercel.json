@@ -1,7 +1,9 @@
 {
   "functions": {
     "api/*.py": {
-      "runtime": "python3.9"
+      "runtime": "python3.9",
+      "memory": 1024,
+      "maxDuration": 30
     }
   },
   "routes": [
@@ -9,5 +11,9 @@
       "src": "/api/(.*)",
       "dest": "/api/index.py"
     }
-  ]
+  ],
+  "env": {
+    "FLASK_APP": "index.py",
+    "FLASK_ENV": "production" 
+  }
 } 

@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "buildCommand": "cd price_tracker/frontend && npm install && npm run build",
+  "outputDirectory": "price_tracker/frontend/dist",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/*.py": {
+      "runtime": "python3.9",
+      "memory": 1024
+    }
+  },
+  "env": {
+    "FLASK_APP": "index.py",
+    "FLASK_ENV": "production"
+  }
+} 
