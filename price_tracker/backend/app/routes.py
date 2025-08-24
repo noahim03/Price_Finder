@@ -9,6 +9,31 @@ import random
 main_bp = Blueprint('main', __name__)
 price_service = PriceService()
 
+# Helper to generate more realistic historical prices using a simple
+# depreciation-style model (going back in time -> price tends to be higher).
+# monthly_rate is the percent change per month when going backwards in time.
+def price_with_time_factor(current_price: float, days_ago: float, monthly_rate: float = 0.02, noise_pct: float = 0.02,
+                           min_floor_pct: float = 0.6, max_ceiling_pct: float = 2.0) -> float:
+    """Compute a plausible past price from current_price.
+
+    Args:
+        current_price: latest known price (today).
+        days_ago: number of days in the past for the target timestamp.
+        monthly_rate: approx price increase per past month (2% default).
+        noise_pct: random noise percentage around the computed value.
+        min_floor_pct: lower clamp relative to current_price.
+        max_ceiling_pct: upper clamp relative to current_price.
+    """
+    months_ago = max(0.0, days_ago / 30.0)
+    # Going back in time, prices tend to be higher (reverse of depreciation)
+    base = current_price * (1.0 + monthly_rate * months_ago)
+    # Add mild noise
+    variation = random.uniform(-noise_pct, noise_pct) * base
+    value = base + variation
+    # Clamp to avoid unrealistic extremes
+    value = max(min_floor_pct * current_price, min(max_ceiling_pct * current_price, value))
+    return round(value, 2)
+
 @main_bp.route('/api/products', methods=['GET'])
 def get_products():
     products = Product.query.all()
@@ -60,11 +85,11 @@ def add_product():
         # Create price history entries for today (last 24 hours)
         for hour in range(24, 0, -2):  # Every 2 hours for the past 24 hours
             timestamp = now - timedelta(hours=hour)
-            # Price varies by small amount (±3%)
-            variation = random.uniform(-0.03, 0.03) * price
+            days_ago = hour / 24.0
+            ph_price = price_with_time_factor(price, days_ago, monthly_rate=0.02, noise_pct=0.01)
             price_history = PriceHistory(
-                product_id=new_product.id, 
-                price=round(price + variation, 2),
+                product_id=new_product.id,
+                price=ph_price,
                 timestamp=timestamp
             )
             db.session.add(price_history)
@@ -72,11 +97,10 @@ def add_product():
         # Create price history entries for past week
         for day in range(7, 0, -1):  # Each day for past week
             timestamp = now - timedelta(days=day)
-            # Price varies by moderate amount (±7%)
-            variation = random.uniform(-0.07, 0.07) * price
+            ph_price = price_with_time_factor(price, day, monthly_rate=0.02, noise_pct=0.015)
             price_history = PriceHistory(
-                product_id=new_product.id, 
-                price=round(price + variation, 2),
+                product_id=new_product.id,
+                price=ph_price,
                 timestamp=timestamp
             )
             db.session.add(price_history)
@@ -84,23 +108,21 @@ def add_product():
         # Create price history entries for past month
         for day in range(30, 0, -3):  # Every 3 days for past month
             timestamp = now - timedelta(days=day)
-            # Price varies by larger amount (±10%)
-            variation = random.uniform(-0.1, 0.1) * price
+            ph_price = price_with_time_factor(price, day, monthly_rate=0.02, noise_pct=0.02)
             price_history = PriceHistory(
-                product_id=new_product.id, 
-                price=round(price + variation, 2),
+                product_id=new_product.id,
+                price=ph_price,
                 timestamp=timestamp
             )
             db.session.add(price_history)
         
         # Create price history entries for past year
         for month in range(12, 0, -1):  # Each month for past year
-            timestamp = now - timedelta(days=month*30)
-            # Price varies by significant amount (±15%)
-            variation = random.uniform(-0.15, 0.15) * price
+            timestamp = now - timedelta(days=month * 30)
+            ph_price = price_with_time_factor(price, month * 30, monthly_rate=0.02, noise_pct=0.025)
             price_history = PriceHistory(
-                product_id=new_product.id, 
-                price=round(price + variation, 2),
+                product_id=new_product.id,
+                price=ph_price,
                 timestamp=timestamp
             )
             db.session.add(price_history)
@@ -189,44 +211,45 @@ def generate_dummy_price_data(product, period, now):
         # Generate hourly prices for today
         for hour in range(24, 0, -2):
             timestamp = now - timedelta(hours=hour)
-            variation = random.uniform(-0.03, 0.03) * base_price
+            days_ago = hour / 24.0
+            ph_price = price_with_time_factor(base_price, days_ago, monthly_rate=0.02, noise_pct=0.01)
             prices.append({
                 "id": None,
                 "product_id": product.id,
-                "price": round(base_price + variation, 2),
+                "price": ph_price,
                 "timestamp": timestamp.isoformat()
             })
     elif period == 'week':
         # Generate daily prices for the week
         for day in range(7, 0, -1):
             timestamp = now - timedelta(days=day)
-            variation = random.uniform(-0.07, 0.07) * base_price
+            ph_price = price_with_time_factor(base_price, day, monthly_rate=0.02, noise_pct=0.015)
             prices.append({
                 "id": None,
                 "product_id": product.id,
-                "price": round(base_price + variation, 2),
+                "price": ph_price,
                 "timestamp": timestamp.isoformat()
             })
     elif period == 'month':
         # Generate prices every 3 days for the month
         for day in range(30, 0, -3):
             timestamp = now - timedelta(days=day)
-            variation = random.uniform(-0.1, 0.1) * base_price
+            ph_price = price_with_time_factor(base_price, day, monthly_rate=0.02, noise_pct=0.02)
             prices.append({
                 "id": None,
                 "product_id": product.id,
-                "price": round(base_price + variation, 2),
+                "price": ph_price,
                 "timestamp": timestamp.isoformat()
             })
     elif period == 'year':
         # Generate monthly prices for the year
         for month in range(12, 0, -1):
-            timestamp = now - timedelta(days=month*30)
-            variation = random.uniform(-0.15, 0.15) * base_price
+            timestamp = now - timedelta(days=month * 30)
+            ph_price = price_with_time_factor(base_price, month * 30, monthly_rate=0.02, noise_pct=0.025)
             prices.append({
                 "id": None,
                 "product_id": product.id,
-                "price": round(base_price + variation, 2),
+                "price": ph_price,
                 "timestamp": timestamp.isoformat()
             })
     

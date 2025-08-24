@@ -1,4 +1,4 @@
-#!/Users/noahim/Documents/price/Price_Finder/price_tracker/backend/venv/bin/python3.13
+#!/Users/noahim/Documents/py/Price_Finder/price_tracker/backend/venv/bin/python3.13
 # -*- coding: utf-8 -*-
 import re
 import sys
