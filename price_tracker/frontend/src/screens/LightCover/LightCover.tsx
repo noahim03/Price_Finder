@@ -2,12 +2,7 @@ import { SearchIcon, RefreshCw } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "../../components/ui/table";
+// Removed unused table UI components
 import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Button } from "../../components/ui/button";  
 import { 
@@ -26,7 +21,7 @@ import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipCont
 const API_BASE_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3001';
 
 // Custom tooltip component for bar charts
-const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
+const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -243,17 +238,19 @@ export const LightCover = (): JSX.Element => {
     });
   };
 
-  const handleTabChange = (value: string) => {
+  const handleTabChange = async (value: string) => {
     setSelectedPeriod(value);
     setShowAllGraphs(false);
+    // Auto-refresh when switching to week or month
+    if ((value === 'week' || value === 'month') && selectedProduct?.id) {
+      await handleRefresh(value);
+    }
   };
 
-  const handleShowAll = () => {
-    setShowAllGraphs(true);
-  };
+  // Removed unused handleShowAll to satisfy lint
 
   // Refresh product price data
-  const handleRefresh = async () => {
+  const handleRefresh = async (periodOverride?: string) => {
     if (!selectedProduct || !selectedProduct.id) return;
     
     try {
@@ -288,8 +285,9 @@ export const LightCover = (): JSX.Element => {
       
       setSelectedProduct(productWithAverages);
       
-      // Fetch updated price data for the current selected period
-      const data = await fetchPriceData(updatedProduct.id, selectedPeriod);
+      // Fetch updated price data for the current selected period (allow override)
+      const period = periodOverride ?? selectedPeriod;
+      const data = await fetchPriceData(updatedProduct.id, period);
       setPriceData(data);
       
       // Update search history
@@ -476,12 +474,14 @@ export const LightCover = (): JSX.Element => {
               {selectedProduct ? (
                 <>
                   <span>${selectedProduct.current_price}</span>
-                  <Button 
-                    onClick={handleRefresh} 
-                    className="ml-2 p-1 h-8 w-8 bg-transparent hover:bg-gray-100"
+                  <Button
+                    onClick={() => handleRefresh()}
+                    className="ml-3 h-8 px-3 bg-transparent hover:bg-gray-100 flex items-center gap-2"
                     disabled={loading}
+                    aria-label="Refresh current product price"
                   >
-                    <RefreshCw size={16} className={`text-gray-500 ${loading ? 'animate-spin' : ''}`} />
+                    <RefreshCw size={16} className={`text-gray-600 ${loading ? 'animate-spin' : ''}`} />
+                    <span className="text-sm text-gray-700">Refresh Price</span>
                   </Button>
                 </>
               ) : (
