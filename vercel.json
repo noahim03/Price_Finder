@@ -5,7 +5,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.py"
+      "destination": "/server/index.py"
     },
     {
       "source": "/(.*)",
@@ -13,8 +13,8 @@
     }
   ],
   "functions": {
-    "api/*.py": {
-      "runtime": "python3.9",
+    "server/*.py": {
+      "runtime": "vercel-python@3.9",
       "memory": 1024
     }
   },
@@ -22,4 +22,4 @@
     "FLASK_APP": "index.py",
     "FLASK_ENV": "production"
   }
-} 
+}
