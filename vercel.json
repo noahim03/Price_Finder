@@ -5,19 +5,13 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/server/index.py"
+      "destination": "/api/index.py"
     },
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
-  "functions": {
-    "server/*.py": {
-      "runtime": "vercel-python@3.9",
-      "memory": 1024
-    }
-  },
   "env": {
     "FLASK_APP": "index.py",
     "FLASK_ENV": "production"
